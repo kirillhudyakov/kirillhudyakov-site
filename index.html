@@ -617,12 +617,16 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     }
   }
 
-  /* === Hero parallax decoration === */
-  section.hero { position: relative; overflow: hidden; }
+  /* === Hero parallax decoration ===
+     IMPORTANT: dimensions in vh/vw (viewport-anchored), NOT in % of hero height.
+     Percentage-of-hero made the decoration prone to a large CLS on desktop when
+     the Onest font swapped in and changed hero height — gradients shifted by tens
+     of pixels. Viewport-anchored geometry is stable regardless of hero resizing. */
+  section.hero { position: relative; overflow: hidden; min-height: 560px; }
   section.hero::before {
     content: ""; position: absolute;
-    top: -30%; right: -20%;
-    width: 75%; height: 130%;
+    top: -15vh; right: -10vw;
+    width: 65vw; height: 90vh;
     background: radial-gradient(ellipse at center, rgba(30, 58, 47, 0.06), transparent 65%);
     pointer-events: none; z-index: 0;
     will-change: transform;
@@ -630,8 +634,8 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   }
   section.hero::after {
     content: ""; position: absolute;
-    bottom: -20%; left: -15%;
-    width: 60%; height: 100%;
+    bottom: -20vh; left: -12vw;
+    width: 55vw; height: 75vh;
     background: radial-gradient(ellipse at center, rgba(30, 58, 47, 0.04), transparent 60%);
     pointer-events: none; z-index: 0;
     will-change: transform;
@@ -737,7 +741,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     nav.top .nav-cta-li .cta-pill { padding: 8px 14px; font-size: 13px; }
     .hamburger { display: inline-flex; }
     .mobile-menu { display: block; }
-    section.hero { padding: 70px 0 70px; }
+    section.hero { padding: 70px 0 70px; min-height: 0; }
     .hero h1 { margin-bottom: 32px; }
     .hero-sub .lead { font-size: 19px; }
     .hero-sub p { font-size: 17px; }
