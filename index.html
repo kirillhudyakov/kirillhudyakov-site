@@ -9,6 +9,7 @@
 <!-- SEO & meta ============================================================ -->
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 <meta name="author" content="Kirill Hudyakov">
+<meta name="google-site-verification" content="ti_DV5HziL2gUTKSUyNJ6o0r7gMp8GAUq0tereibGLM">
 <meta name="theme-color" content="#F5F1EA">
 <meta name="color-scheme" content="light">
 <link rel="canonical" href="https://kirillhudyakov.com/">
@@ -16,8 +17,8 @@
 <!-- Open Graph (LinkedIn, Telegram, FB share previews) ===================== -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kirillhudyakov.com/">
-<meta property="og:title" content="Kirill Hudyakov — Growth &amp; Systems Operator">
-<meta property="og:description" content="Helping founders find where growth actually breaks. Diagnostic, strategy, and fractional engagements.">
+<meta property="og:title" content="Kirill Hudyakov — Growth &amp; Systems Operator for Founders">
+<meta property="og:description" content="Helping founders find where growth actually breaks — in product, sales, operations, or the founder's blind spot. Diagnostic and strategy engagements.">
 <meta property="og:image" content="https://kirillhudyakov.com/og-kirill-hudyakov.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -28,8 +29,8 @@
 
 <!-- Twitter/X Card ======================================================== -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kirill Hudyakov — Growth &amp; Systems Operator">
-<meta name="twitter:description" content="Helping founders find where growth actually breaks.">
+<meta name="twitter:title" content="Kirill Hudyakov — Growth &amp; Systems Operator for Founders">
+<meta name="twitter:description" content="Helping founders find where growth actually breaks — in product, sales, operations, or the founder's blind spot.">
 <meta name="twitter:image" content="https://kirillhudyakov.com/og-kirill-hudyakov.jpg">
 <meta name="twitter:image:alt" content="Kirill Hudyakov — Growth &amp; Systems Operator">
 
@@ -83,7 +84,6 @@
   "url": "https://kirillhudyakov.com",
   "email": "hudyakov.kir@gmail.com",
   "founder": { "@id": "https://kirillhudyakov.com/#person" },
-  "provider": { "@id": "https://kirillhudyakov.com/#person" },
   "address": {
     "@type": "PostalAddress",
     "addressLocality": "Bali",
@@ -159,6 +159,10 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Analytics preconnects (saves 100-300ms DNS+TLS) -->
+<link rel="preconnect" href="https://www.googletagmanager.com">
+<link rel="preconnect" href="https://mc.yandex.ru">
+<link rel="preconnect" href="https://connect.facebook.net">
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
@@ -167,7 +171,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     --bg-alt: #EBE5D8;
     --ink: #0E0E0E;
     --ink-muted: #5A5552;
-    --ink-soft: #8A847F;
+    --ink-soft: #6F6963;
     --accent: #1E3A2F;
     --accent-soft: #D4CFC4;
     --rule: rgba(14, 14, 14, 0.12);
@@ -474,6 +478,15 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.8s ease, transform 0.8s ease; }
   .reveal.in { opacity: 1; transform: translateY(0); }
 
+  /* Mobile safety net: always show content, never hide via reveal animation.
+     Tall sections on mobile (like Cases) can fail to cross IntersectionObserver threshold reliably. */
+  @media (max-width: 768px) {
+    .reveal, .reveal:not(.in) {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
   /* === Hero parallax decoration === */
   section.hero { position: relative; overflow: hidden; }
   section.hero::before {
@@ -593,6 +606,18 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     .case-body .pullquote { font-size: 17px; padding: 16px 18px; }
   }
 </style>
+<!-- Vercel Web Analytics (active) -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+
+<!-- Vercel Speed Insights (active) -->
+<script>
+  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+
 </head>
 <body>
 
@@ -618,6 +643,8 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
 </nav>
 
 <a id="top"></a>
+
+<main>
 
 <!-- HERO -->
 <section class="hero">
@@ -1330,6 +1357,8 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   </div>
 </section>
 
+</main>
+
 <!-- FOOTER -->
 <footer>
   <div class="container">
@@ -1370,12 +1399,23 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     entries.forEach(entry => {
       if (entry.isIntersecting) entry.target.classList.add('in');
     });
-  }, { threshold: 0.1 });
+  }, { threshold: 0, rootMargin: '0px 0px -10% 0px' });
 
   document.querySelectorAll('section').forEach(el => {
     el.classList.add('reveal');
     revealObserver.observe(el);
   });
+
+  // Safety net: after 2s, force-reveal any section that is in or near the viewport
+  // (handles edge cases on mobile Safari where IntersectionObserver may miss tall sections).
+  setTimeout(() => {
+    document.querySelectorAll('.reveal:not(.in)').forEach(section => {
+      const rect = section.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 1.5) {
+        section.classList.add('in');
+      }
+    });
+  }, 2000);
 
   // ===========================================================
   // Counter animation for case stats
