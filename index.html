@@ -814,6 +814,22 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     .hero-sub p { font-size: 17px; }
     section.philosophy, section.services, section.cases, section.bio { padding: 70px 0; }
     section.contact { padding: 80px 0; }
+    /* === Mobile footer layout ===
+       Reorganize to: top row [brand | links], bottom row [© copyright centered].
+       Reads more naturally on narrow screens. */
+    footer { padding: 36px 0 32px; }
+    footer .inner {
+      gap: 20px 16px;
+      align-items: center;
+    }
+    footer .brand-foot { order: 1; flex: 0 0 auto; }
+    footer .links { order: 2; flex: 0 0 auto; gap: 18px; }
+    footer .copy {
+      order: 3;
+      width: 100%;
+      text-align: center;
+      margin-top: 4px;
+    }
     .philosophy-body { font-size: 19px; }
     .bio-text p { font-size: 17px; }
     .case-results-grid { grid-template-columns: 1fr; }
