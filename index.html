@@ -147,10 +147,6 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
 <noscript><div><img src="https://mc.yandex.ru/watch/109386882" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 <!-- /Yandex Metrica -->
 
-<!-- Vercel Web Analytics (active) ========================================= -->
-<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
-<!-- /Vercel Web Analytics -->
-
 <!-- Microsoft Clarity (heatmaps + session recordings) ===================== 
 <script type="text/javascript">
   (function(c,l,a,r,i,t,y){
@@ -161,14 +157,18 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
 </script>
 ========================================================================== -->
 
+<!-- Critical preconnects (fonts impact LCP) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Analytics preconnects (saves 100-300ms DNS+TLS) -->
-<link rel="preconnect" href="https://www.googletagmanager.com">
-<link rel="preconnect" href="https://mc.yandex.ru">
-<link rel="preconnect" href="https://connect.facebook.net">
-<link rel="preconnect" href="https://cdn.vercel-insights.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Analytics: dns-prefetch only (saves ~100ms DNS, async-loaded scripts don't need full preconnect) -->
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<link rel="dns-prefetch" href="https://mc.yandex.ru">
+<link rel="dns-prefetch" href="https://connect.facebook.net">
+<!-- Non-blocking Google Fonts load — swap from system font on load (text-first paint, ~2s LCP saved) -->
+<link rel="preload" as="style"
+  href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Onest:wght@300;400;500;600;700&display=swap"
+  onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Onest:wght@300;400;500;600;700&display=swap"></noscript>
 
 <style>
   :root {
@@ -184,7 +184,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
   body {
     background: var(--bg); color: var(--ink);
     font-family: 'Onest', system-ui, sans-serif;
@@ -218,8 +218,70 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   }
   .brand .dot { color: var(--accent); font-style: italic; }
   nav.top ul { list-style: none; display: flex; gap: 32px; align-items: center; }
+  nav.top .nav-right { display: flex; align-items: center; gap: 12px; }
   nav.top a.link { color: var(--ink-muted); text-decoration: none; font-size: 15px; transition: color 0.2s; }
   nav.top a.link:hover { color: var(--ink); }
+
+  /* Hamburger button — hidden on desktop, visible on mobile */
+  .hamburger {
+    display: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: 8px;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .hamburger span {
+    display: block;
+    width: 20px;
+    height: 1.5px;
+    background: var(--ink);
+    border-radius: 1px;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+  .hamburger.is-open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .hamburger.is-open span:nth-child(2) { opacity: 0; }
+  .hamburger.is-open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  /* Mobile slide-down menu — hidden by default */
+  .mobile-menu {
+    display: none;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+    background: rgba(245, 241, 234, 0.98);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .mobile-menu.is-open { max-height: 500px; }
+  .mobile-menu ul {
+    list-style: none;
+    padding: 16px 20px 24px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .mobile-menu a.m-link {
+    display: block;
+    padding: 14px 0;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 18px;
+    font-family: 'Instrument Serif', Georgia, serif;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid var(--rule-soft);
+    transition: color 0.2s;
+  }
+  .mobile-menu a.m-link:last-child { border-bottom: 0; }
+  .mobile-menu a.m-link:hover { color: var(--accent); }
 
   .lang-switch {
     display: inline-flex; gap: 4px; align-items: center;
@@ -239,6 +301,9 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     display: inline-block; padding: 10px 20px;
     background: var(--ink); color: var(--bg); border-radius: 999px;
     font-size: 14px; font-weight: 500; text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1;
     transition: background 0.2s, transform 0.2s;
   }
   .cta-pill:hover { background: var(--accent); transform: translateY(-1px); }
@@ -431,6 +496,66 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     color: var(--ink);
   }
 
+  /* Inline result highlight — replaces visually heavy <p><strong>...</strong></p> blocks.
+     Renders as a clean accent strip with a label + value, wraps cleanly on mobile. */
+  .case-body .result-highlight {
+    margin: 14px 0 0;
+    padding: 18px 22px;
+    background: rgba(30, 58, 47, 0.05);
+    border-left: 2px solid var(--accent);
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--ink);
+    font-weight: 500;
+    border-radius: 0 4px 4px 0;
+  }
+  .case-body .result-highlight .label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .case-body .result-highlight .value {
+    display: block;
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--accent);
+    line-height: 1.25;
+  }
+
+  /* Contact section — smart "continue reading" back link.
+     Hidden by default. Shown via JS when user arrived from a case or section CTA. */
+  .contact-back-wrap {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule-soft);
+    display: none;
+  }
+  .contact-back-wrap.is-active { display: block; }
+  .contact-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink-muted);
+    font-size: 14px;
+    text-decoration: none;
+    font-style: italic;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .contact-back-link:hover { color: var(--accent); }
+  .contact-back-link .arrow { transition: transform 0.2s; }
+  .contact-back-link:hover .arrow { transform: translateY(-2px); }
+  .contact-back-link .target-name {
+    font-style: normal;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
   section.bio { padding: 120px 0 120px; border-top: 1px solid var(--rule); background: var(--bg-alt); }
   .bio-grid { display: grid; grid-template-columns: 0.85fr 1.4fr; gap: 72px; align-items: start; }
   .bio-photo { position: relative; }
@@ -549,12 +674,17 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   .case-cta-hover a {
     font-size: 14px; color: var(--ink-muted); text-decoration: none;
     font-style: italic;
-    display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-right: 4px;
     transition: color 0.2s;
   }
   .case-cta-hover a:hover { color: var(--accent); }
-  .case-cta-hover a::after { content: "→"; transition: transform 0.2s; font-style: normal; }
-  .case-cta-hover a:hover::after { transform: translateX(4px); }
+  .case-cta-hover a::after {
+    content: "→";
+    transition: transform 0.2s;
+    font-style: normal;
+  }
+  .case-cta-hover a:hover::after { transform: translateX(2px); }
 
   /* On touch devices — always visible (no hover), but compact */
   @media (hover: none) {
@@ -592,10 +722,21 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   }
   @media (max-width: 768px) {
     body { font-size: 16px; }
+    html { scroll-padding-top: 64px; }
     .container, .container-narrow { padding: 0 20px; }
     nav.top .inner { padding: 14px 20px; }
-    nav.top ul { gap: 14px; }
-    nav.top a.link { display: none; }
+    nav.top ul { gap: 10px; }
+    nav.top .nav-right { gap: 10px; }
+    /* Hide nav link items from top nav on mobile — they move into hamburger menu.
+       Keep lang switcher AND CTA pill visible in top bar. */
+    nav.top ul li.l-en,
+    nav.top ul li.l-ru { display: none; }
+    /* Compact lang-switch on mobile to save space */
+    nav.top .nav-lang-li .lang-switch { transform: scale(0.85); transform-origin: right center; }
+    /* Compact CTA pill on mobile */
+    nav.top .nav-cta-li .cta-pill { padding: 8px 14px; font-size: 13px; }
+    .hamburger { display: inline-flex; }
+    .mobile-menu { display: block; }
     section.hero { padding: 70px 0 70px; }
     .hero h1 { margin-bottom: 32px; }
     .hero-sub .lead { font-size: 19px; }
@@ -629,20 +770,38 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
 <nav class="top">
   <div class="inner">
     <a class="brand" href="#top">Kirill Khudyakov<span class="dot">.</span></a>
+    <div class="nav-right">
+      <ul>
+        <li class="l-en"><a class="link" href="#services">Services</a></li>
+        <li class="l-en"><a class="link" href="#cases">Cases</a></li>
+        <li class="l-en"><a class="link" href="#about">About</a></li>
+        <li class="l-ru"><a class="link" href="#services">Услуги</a></li>
+        <li class="l-ru"><a class="link" href="#cases">Кейсы</a></li>
+        <li class="l-ru"><a class="link" href="#about">О себе</a></li>
+        <li class="nav-lang-li">
+          <div class="lang-switch" role="group" aria-label="Language">
+            <button type="button" data-set-lang="ru">RU</button>
+            <button type="button" data-set-lang="en">EN</button>
+          </div>
+        </li>
+        <li class="nav-cta-li"><a class="cta-pill l-en" href="#contact">Get in touch</a><a class="cta-pill l-ru" href="#contact">Связаться</a></li>
+      </ul>
+      <button type="button" class="hamburger" id="hamburgerBtn" aria-label="Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <!-- Mobile slide-down menu — navigation only. Lang switcher stays in top nav. -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
     <ul>
-      <li class="l-en"><a class="link" href="#services">Services</a></li>
-      <li class="l-en"><a class="link" href="#cases">Cases</a></li>
-      <li class="l-en"><a class="link" href="#about">About</a></li>
-      <li class="l-ru"><a class="link" href="#services">Услуги</a></li>
-      <li class="l-ru"><a class="link" href="#cases">Кейсы</a></li>
-      <li class="l-ru"><a class="link" href="#about">О себе</a></li>
-      <li>
-        <div class="lang-switch" role="group" aria-label="Language">
-          <button type="button" data-set-lang="ru">RU</button>
-          <button type="button" data-set-lang="en">EN</button>
-        </div>
-      </li>
-      <li><a class="cta-pill l-en" href="#contact">Get in touch</a><a class="cta-pill l-ru" href="#contact">Связаться</a></li>
+      <li class="l-en"><a class="m-link" href="#services">Services</a></li>
+      <li class="l-en"><a class="m-link" href="#cases">Cases</a></li>
+      <li class="l-en"><a class="m-link" href="#about">About</a></li>
+      <li class="l-en"><a class="m-link" href="#contact">Get in touch</a></li>
+      <li class="l-ru"><a class="m-link" href="#services">Услуги</a></li>
+      <li class="l-ru"><a class="m-link" href="#cases">Кейсы</a></li>
+      <li class="l-ru"><a class="m-link" href="#about">О себе</a></li>
+      <li class="l-ru"><a class="m-link" href="#contact">Связаться</a></li>
     </ul>
   </div>
 </nav>
@@ -671,8 +830,8 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     <div class="hero-sub l-ru">
       <p>То, что выглядит как проблема маркетинга, — обычно проблема продукта.</p>
       <p>То, что выглядит как проблема продукта, — часто проблема продаж.</p>
-      <p>То, что выглядит как проблема команды, — обычно проблема ��истемы.</p>
-      <p class="lead">Помогаю founders находить, где рост действительно ломается, — и собирать продукт, поз��ционирование и систему, которые работают.</p>
+      <p>То, что выглядит как проблема команды, — обычно проблема системы.</p>
+      <p class="lead">Помогаю founders находить, где рост действительно ломается, — и собирать продукт, позиционирование и систему, которые работают.</p>
     </div>
 
     <div class="hero-cta">
@@ -1066,7 +1225,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
             <div class="stat">
               <span class="num">28/day</span>
               <span class="desc l-en">Peak field meetings with B2B clients in a single day</span>
-              <span class="desc l-ru">Пиковая нагрузка встреч с B2B-клиентами в один де��ь</span>
+              <span class="desc l-ru">Пиковая нагрузка встреч с B2B-клиентами в один день</span>
             </div>
             <div class="stat">
               <span class="num">~90%</span>
@@ -1233,7 +1392,10 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
           <div class="block">
             <h4>Featured engagement — Perspektiva 24</h4>
             <p>Russian real estate franchise network. My scope: marketing, traffic, and the webinar funnel for partner and agent acquisition. Built the lead-generation engine across Facebook and Google, with a webinar funnel converting leads into franchise partners and agents. Not the underlying platform or business model — the marketing system around it.</p>
-            <p><strong>Result during the engagement: ~400%+ ROI on the acquisition layer.</strong></p>
+            <div class="result-highlight">
+              <span class="label">Result during the engagement</span>
+              <span class="value">~400%+ ROI on the acquisition layer</span>
+            </div>
           </div>
         </div>
         <div class="l-ru">
@@ -1243,7 +1405,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
           </div>
           <div class="block">
             <h4>Что я увидел на 70+ бизнесах</h4>
-            <p>Большинство проблем с ростом не уникальны. Они повторяются. Одни и те же ��ломанные паттерны появляются в разных индустриях, географиях, на разных стадиях — и founders почти всегда опис��вают их одинаково: <em>«маркетинг не работает».</em> Почти никогда дело не в маркетинге.</p>
+            <p>Большинство проблем с ростом не уникальны. Они повторяются. Одни и те же сломанные паттерны появляются в разных индустриях, географиях, на разных стадиях — и founders почти всегда описывают их одинаково: <em>«маркетинг не работает».</em> Почти никогда дело не в маркетинге.</p>
             <p>Реальное узкое место — в одной из четырёх точек:</p>
             <ul>
               <li>Непонятен продукт — позиционирование, value proposition, unit-экономика</li>
@@ -1259,7 +1421,10 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
           <div class="block">
             <h4>Ключевой проект — Перспектива 24</h4>
             <p>Российская франшизная сеть в недвижимости. Моя зона: маркетинг, трафик и вебинарная воронка для привлечения партнёров и агентов. Построил систему лидогенерации через Facebook и Google, вебинарная воронка переводила лидов во франшизных партнёров и агентов. Не платформа и не вся бизнес-модель — маркетинговая система вокруг неё.</p>
-            <p><strong>Результат за период работы: ~400%+ ROI на acquisition-слое.</strong></p>
+            <div class="result-highlight">
+              <span class="label">Результат за период работы</span>
+              <span class="value">~400%+ ROI на acquisition-слое</span>
+            </div>
           </div>
         </div>
 
@@ -1291,6 +1456,11 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
               <span class="num">Cross-industry</span>
               <span class="desc l-en">E-commerce, services, B2B, consumer brands, real estate</span>
               <span class="desc l-ru">E-commerce, услуги, B2B, consumer-бренды, недвижимость</span>
+            </div>
+            <div class="stat">
+              <span class="num num-label l-en">5 paid channels</span><span class="num num-label l-ru">5 paid-каналов</span>
+              <span class="desc l-en">Facebook, Google, Yandex, LinkedIn, Telegram</span>
+              <span class="desc l-ru">Facebook, Google, Yandex, LinkedIn, Telegram</span>
             </div>
           </div>
           <p class="note l-en">This is where the diagnostic method was forged. Not from theory — from pattern recognition across 70+ real businesses.</p>
@@ -1326,7 +1496,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
         </div>
         <div class="l-ru">
           <p>Больше 10 лет строю, ломаю и пересобираю бизнесы изнутри — ранние B2B-продажи в автомобильной индустрии и нефтепродуктах, сооснование automotive-фрагранс бренда, выросшего из багажника машины до 1,100+ единиц в месяц, реструктуризация сломанных производственных операций, ведение digital-агентства через 70+ бизнесов на нескольких рынках, <strong>CMO-роль в премиум-девелопменте недвижимости во время продаж свыше $170M</strong>.</p>
-          <p>Большинство паттернов считаны не из консалтинга, а из операционки. <span class="em">Паттерны повторяются.</span> Проб��емы маркетинга — обычно проблемы продукта. Проблемы продукта — часто проблемы продаж. Проблемы команды — часто проблемы системы. Работа — понять, в каком из этих паттернов бизнес находится сейчас, и пересобрать то, что под ним.</p>
+          <p>Большинство паттернов считаны не из консалтинга, а из операционки. <span class="em">Паттерны повторяются.</span> Проблемы маркетинга — обычно проблемы продукта. Проблемы продукта — часто проблемы продаж. Проблемы команды — часто проблемы системы. Работа — понять, в каком из этих паттернов бизнес находится сейчас, и пересобрать то, что под ним.</p>
           <p style="font-size: 16px; color: var(--ink-muted); margin-top: 8px;">Базируюсь на Бали. Работаю с founders по всему миру.</p>
         </div>
       </div>
@@ -1359,6 +1529,15 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     <p class="contact-secondary l-ru">
       Или через <a href="https://www.linkedin.com/in/kirill-huduakov-97a701262/" target="_blank">LinkedIn</a> · Базируюсь на Бали · Работаю с founders по всему миру
     </p>
+
+    <!-- Smart back-link: shown via JS only when user arrived here from a case/section CTA -->
+    <div class="contact-back-wrap" id="contactBackWrap">
+      <a href="#" class="contact-back-link" id="contactBackLink">
+        <span class="arrow">↑</span>
+        <span class="l-en">Continue reading — <span class="target-name" data-back-name></span></span>
+        <span class="l-ru">Продолжить читать — <span class="target-name" data-back-name></span></span>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -1563,12 +1742,126 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     link.addEventListener('click', () => trackEvent('click_email', { location: 'site' }));
   });
 
-  // Internal CTA clicks (to #contact)
+  // Internal CTA clicks (to #contact) — also tracks source for smart back-link
+  let contactReturnTarget = null;
   document.querySelectorAll('a[href="#contact"]').forEach(link => {
     link.addEventListener('click', () => {
       const text = link.textContent.trim().slice(0, 60);
       trackEvent('click_cta_contact', { button_text: text });
+
+      // Determine source: prefer a case article, else nearest section (excluding contact itself)
+      const sourceArticle = link.closest('article.case');
+      const sourceSection = link.closest('section');
+      let target = null;
+      let nameEn = '', nameRu = '';
+
+      if (sourceArticle) {
+        target = sourceArticle;
+        const enTitle = sourceArticle.querySelector('.case-meta-col h3');
+        const enSub = sourceArticle.querySelector('.case-meta-col .case-sub.l-en') || sourceArticle.querySelector('.case-meta-col .case-sub');
+        nameEn = enTitle ? enTitle.textContent.trim() : 'this case';
+        nameRu = nameEn; // case titles are not localized in our content (brand names)
+      } else if (sourceSection && sourceSection.id && sourceSection.id !== 'contact') {
+        target = sourceSection;
+        const sectionId = sourceSection.id;
+        const labels = {
+          services: { en: 'Services', ru: 'Услуги' },
+          cases: { en: 'Cases', ru: 'Кейсы' },
+          about: { en: 'About', ru: 'Обо мне' }
+        };
+        nameEn = labels[sectionId]?.en || 'previous section';
+        nameRu = labels[sectionId]?.ru || 'предыдущему разделу';
+      }
+
+      if (target) {
+        contactReturnTarget = target;
+        const wrap = document.getElementById('contactBackWrap');
+        const enSpan = wrap?.querySelector('.l-en .target-name');
+        const ruSpan = wrap?.querySelector('.l-ru .target-name');
+        if (enSpan) enSpan.textContent = nameEn;
+        if (ruSpan) ruSpan.textContent = nameRu;
+        wrap?.classList.add('is-active');
+      }
     });
+  });
+
+  // Smart back-link click → scroll to source
+  document.getElementById('contactBackLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (contactReturnTarget) {
+      contactReturnTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+
+  // ===========================================================
+  // Manual anchor-link scroll — fixes iOS Safari first-click miss
+  // where CSS scroll-padding-top doesn't apply on first interaction.
+  // Calculates nav height dynamically and scrolls with exact offset.
+  // ===========================================================
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const targetId = link.getAttribute('href');
+      if (!targetId || targetId === '#') return;
+      const target = document.querySelector(targetId);
+      if (!target) return;
+
+      e.preventDefault();
+      const nav = document.querySelector('nav.top');
+      const navHeight = nav ? nav.offsetHeight : 64;
+      const extraOffset = 20; // breathing room below nav
+      const targetTop = target.getBoundingClientRect().top + window.pageYOffset - navHeight - extraOffset;
+
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: 'smooth'
+      });
+
+      // Update URL hash without re-triggering browser jump
+      if (history.replaceState) {
+        history.replaceState(null, '', targetId);
+      }
+    });
+  });
+  // ===========================================================
+  // Hamburger menu toggle for mobile
+  // ===========================================================
+  const hamburger = document.getElementById('hamburgerBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  function closeMobileMenu() {
+    hamburger?.classList.remove('is-open');
+    mobileMenu?.classList.remove('is-open');
+    hamburger?.setAttribute('aria-expanded', 'false');
+    mobileMenu?.setAttribute('aria-hidden', 'true');
+  }
+
+  function openMobileMenu() {
+    hamburger?.classList.add('is-open');
+    mobileMenu?.classList.add('is-open');
+    hamburger?.setAttribute('aria-expanded', 'true');
+    mobileMenu?.setAttribute('aria-hidden', 'false');
+  }
+
+  hamburger?.addEventListener('click', () => {
+    const isOpen = hamburger.classList.contains('is-open');
+    if (isOpen) closeMobileMenu(); else openMobileMenu();
+  });
+
+  // Close menu when clicking any link inside it
+  mobileMenu?.querySelectorAll('a.m-link').forEach(link => {
+    link.addEventListener('click', () => closeMobileMenu());
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!mobileMenu?.classList.contains('is-open')) return;
+    if (mobileMenu.contains(e.target) || hamburger.contains(e.target)) return;
+    closeMobileMenu();
+  });
+
+  // Close on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMobileMenu();
   });
 
   // LinkedIn link clicks
