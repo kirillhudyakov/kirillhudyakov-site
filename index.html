@@ -10,7 +10,23 @@
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
 <meta name="author" content="Kirill Hudyakov">
 <meta name="google-site-verification" content="ti_DV5HziL2gUTKSUyNJ6o0r7gMp8GAUq0tereibGLM">
-<meta name="theme-color" content="#F5F1EA">
+<meta name="theme-color" content="#F5F1EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14110E" media="(prefers-color-scheme: dark)">
+
+<!-- Anti-FOUC: apply theme before first paint to avoid flash. Must run synchronously.
+     Reads localStorage first (explicit user choice), then system preference. -->
+<script>
+(function() {
+  try {
+    var saved = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var theme = saved || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+})();
+</script>
 <meta name="color-scheme" content="light">
 <link rel="canonical" href="https://kirillhudyakov.com/">
 
@@ -171,7 +187,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Onest:wght@300;400;500;600;700&display=swap"></noscript>
 
 <style>
-  :root {
+  :root, :root[data-theme="light"] {
     --bg: #F5F1EA;
     --bg-alt: #EBE5D8;
     --ink: #0E0E0E;
@@ -181,7 +197,34 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     --accent-soft: #D4CFC4;
     --rule: rgba(14, 14, 14, 0.12);
     --rule-soft: rgba(14, 14, 14, 0.06);
+    /* RGB variants for rgba() with dynamic alpha (navbar blur, decorations, hovers) */
+    --bg-rgb: 245, 241, 234;
+    --ink-rgb: 14, 14, 14;
+    --accent-rgb: 30, 58, 47;
+    --photo-shadow: 0 1px 0 rgba(14,14,14,0.06), 0 24px 60px -24px rgba(14,14,14,0.15);
   }
+
+  /* Dark theme — warm editorial dark, NOT cold tech grey.
+     Forest green accent is brightened so it reads on the dark bg.
+     Text is warm cream (not pure white) to keep the editorial feel. */
+  :root[data-theme="dark"] {
+    --bg: #14110E;
+    --bg-alt: #1F1B17;
+    --ink: #F1EBE0;
+    --ink-muted: #A39B91;
+    --ink-soft: #88817A;
+    --accent: #7AB590;
+    --accent-soft: #2D3D34;
+    --rule: rgba(241, 235, 224, 0.14);
+    --rule-soft: rgba(241, 235, 224, 0.07);
+    --bg-rgb: 20, 17, 14;
+    --ink-rgb: 241, 235, 224;
+    --accent-rgb: 122, 181, 144;
+    --photo-shadow: 0 1px 0 rgba(0,0,0,0.4), 0 24px 60px -24px rgba(0,0,0,0.6);
+  }
+
+  html { transition: background-color 0.3s ease; }
+  body { transition: background-color 0.3s ease, color 0.3s ease; }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; scroll-padding-top: 80px; }
@@ -203,7 +246,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
 
   nav.top {
     position: sticky; top: 0; z-index: 100;
-    background: rgba(245, 241, 234, 0.85);
+    background: rgba(var(--bg-rgb), 0.85);
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--rule-soft);
   }
@@ -255,7 +298,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     overflow: hidden;
     max-height: 0;
     transition: max-height 0.3s ease;
-    background: rgba(245, 241, 234, 0.98);
+    background: rgba(var(--bg-rgb), 0.98);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--rule-soft);
@@ -285,7 +328,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
 
   .lang-switch {
     display: inline-flex; gap: 4px; align-items: center;
-    padding: 4px; background: rgba(14,14,14,0.04); border-radius: 999px;
+    padding: 4px; background: rgba(var(--ink-rgb), 0.06); border-radius: 999px;
     font-size: 12px; font-weight: 500; letter-spacing: 0.04em;
   }
   .lang-switch button {
@@ -296,6 +339,27 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   }
   .lang-switch button:hover { color: var(--ink); }
   .lang-switch button.active { background: var(--ink); color: var(--bg); }
+
+  /* === Theme toggle button === */
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 999px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+  }
+  .theme-toggle:hover { color: var(--ink); background-color: rgba(var(--ink-rgb), 0.06); }
+  .theme-toggle .theme-icon { width: 18px; height: 18px; display: block; }
+  /* Show sun icon in dark mode, moon icon in light mode */
+  :root[data-theme="light"] .theme-toggle .theme-icon-sun { display: none; }
+  :root[data-theme="dark"] .theme-toggle .theme-icon-moon { display: none; }
 
   .cta-pill {
     display: inline-block; padding: 10px 20px;
@@ -487,7 +551,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   .case-body .pullquote {
     margin: 8px 0 0;
     padding: 20px 24px;
-    background: rgba(30, 58, 47, 0.04);
+    background: rgba(var(--accent-rgb), 0.04);
     border-left: 2px solid var(--accent);
     font-family: 'Instrument Serif', Georgia, serif;
     font-style: italic;
@@ -501,7 +565,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
   .case-body .result-highlight {
     margin: 14px 0 0;
     padding: 18px 22px;
-    background: rgba(30, 58, 47, 0.05);
+    background: rgba(var(--accent-rgb), 0.06);
     border-left: 2px solid var(--accent);
     font-size: 16px;
     line-height: 1.5;
@@ -563,7 +627,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     display: block; width: 100%; height: auto;
     border-radius: 2px;
     filter: grayscale(0%) contrast(1.02);
-    box-shadow: 0 1px 0 rgba(14,14,14,0.06), 0 24px 60px -24px rgba(14,14,14,0.15);
+    box-shadow: var(--photo-shadow);
   }
   .bio-photo::after {
     content: ""; position: absolute; left: -8px; top: -8px;
@@ -627,7 +691,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     content: ""; position: absolute;
     top: -15vh; right: -10vw;
     width: 65vw; height: 90vh;
-    background: radial-gradient(ellipse at center, rgba(30, 58, 47, 0.06), transparent 65%);
+    background: radial-gradient(ellipse at center, rgba(var(--accent-rgb), 0.06), transparent 65%);
     pointer-events: none; z-index: 0;
     will-change: transform;
     transform: translate3d(0, var(--parallax-y, 0), 0);
@@ -636,7 +700,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     content: ""; position: absolute;
     bottom: -20vh; left: -12vw;
     width: 55vw; height: 75vh;
-    background: radial-gradient(ellipse at center, rgba(30, 58, 47, 0.04), transparent 60%);
+    background: radial-gradient(ellipse at center, rgba(var(--accent-rgb), 0.04), transparent 60%);
     pointer-events: none; z-index: 0;
     will-change: transform;
     transform: translate3d(0, var(--parallax-y-slow, 0), 0);
@@ -648,7 +712,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     transition: background-color 0.4s ease;
     border-radius: 2px;
   }
-  .case:hover { background-color: rgba(30, 58, 47, 0.02); }
+  .case:hover { background-color: rgba(var(--accent-rgb), 0.03); }
 
   .case-cta-hover {
     max-height: 0;
@@ -739,6 +803,9 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     nav.top .nav-lang-li .lang-switch { transform: scale(0.85); transform-origin: right center; }
     /* Compact CTA pill on mobile */
     nav.top .nav-cta-li .cta-pill { padding: 8px 14px; font-size: 13px; }
+    /* Compact theme toggle on mobile */
+    nav.top .theme-toggle { width: 32px; height: 32px; }
+    nav.top .theme-toggle .theme-icon { width: 16px; height: 16px; }
     .hamburger { display: inline-flex; }
     .mobile-menu { display: block; }
     section.hero { padding: 70px 0 70px; min-height: 0; }
@@ -787,6 +854,19 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
             <button type="button" data-set-lang="ru">RU</button>
             <button type="button" data-set-lang="en">EN</button>
           </div>
+        </li>
+        <li class="nav-theme-li">
+          <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+            <!-- Sun (visible in dark mode) -->
+            <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
+            <!-- Moon (visible in light mode) -->
+            <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </button>
         </li>
         <li class="nav-cta-li"><a class="cta-pill l-en" href="#contact">Get in touch</a><a class="cta-pill l-ru" href="#contact">Связаться</a></li>
       </ul>
@@ -1925,6 +2005,61 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
       language: btn.dataset.setLang
     }));
   });
+
+  // ===========================================================
+  // Theme toggle — switches between light and dark.
+  // Persists choice in localStorage. Inline anti-FOUC script in <head>
+  // already applied the correct theme before first paint, so this only
+  // handles user-initiated toggles and (optionally) reacts to system
+  // changes when the user has NOT made an explicit choice.
+  // ===========================================================
+  (function setupThemeToggle() {
+    const toggle = document.getElementById('themeToggle');
+    if (!toggle) return;
+
+    function getCurrentTheme() {
+      return document.documentElement.getAttribute('data-theme') || 'light';
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      // Update theme-color meta dynamically for mobile status bar
+      const themeColorMetas = document.querySelectorAll('meta[name="theme-color"]');
+      // Keep the media-attributed ones as-is; their browser will pick the right one.
+      // But for browsers that don't support media on theme-color, sync the first plain one.
+      // Vercel iOS sometimes ignores media query — set a non-media one to be safe.
+      let plain = document.querySelector('meta[name="theme-color"]:not([media])');
+      if (!plain) {
+        plain = document.createElement('meta');
+        plain.name = 'theme-color';
+        document.head.appendChild(plain);
+      }
+      plain.content = theme === 'dark' ? '#14110E' : '#F5F1EA';
+    }
+
+    toggle.addEventListener('click', () => {
+      const next = getCurrentTheme() === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try { localStorage.setItem('theme', next); } catch(e) {}
+      trackEvent('theme_switch', { theme: next });
+    });
+
+    // React to system theme changes ONLY if user hasn't made an explicit choice
+    if (window.matchMedia) {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const onSystemChange = (e) => {
+        try {
+          if (localStorage.getItem('theme')) return; // user has a preference, ignore
+          applyTheme(e.matches ? 'dark' : 'light');
+        } catch(err) {}
+      };
+      if (mq.addEventListener) mq.addEventListener('change', onSystemChange);
+      else if (mq.addListener) mq.addListener(onSystemChange); // Safari < 14
+    }
+
+    // Sync the non-media theme-color meta on initial load to match current theme
+    applyTheme(getCurrentTheme());
+  })();
 
   // Scroll depth — fires once at 25/50/75/100%
   (function setupScrollDepth() {
