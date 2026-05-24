@@ -791,8 +791,11 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
       </button>
     </div>
   </div>
-  <!-- Mobile slide-down menu — navigation only. Lang switcher stays in top nav. -->
-  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+  <!-- Mobile slide-down menu — navigation only. Lang switcher stays in top nav.
+       inert attribute makes the menu non-focusable AND hidden from screen readers
+       when closed (removed by openMobileMenu). This is the modern replacement for
+       aria-hidden + tabindex=-1 dance, with proper a11y semantics. -->
+  <div class="mobile-menu" id="mobileMenu" inert>
     <ul>
       <li class="l-en"><a class="m-link" href="#services">Services</a></li>
       <li class="l-en"><a class="m-link" href="#cases">Cases</a></li>
@@ -1696,10 +1699,21 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     const hero = document.querySelector('section.hero');
     if (!hero) return;
 
+    // Cache hero height — avoids forced reflow on every scroll frame.
+    // Update cache only on resize (debounced via rAF).
+    let heroHeight = hero.offsetHeight;
+    let resizeFrame = null;
+    window.addEventListener('resize', () => {
+      if (resizeFrame) return;
+      resizeFrame = requestAnimationFrame(() => {
+        heroHeight = hero.offsetHeight;
+        resizeFrame = null;
+      });
+    }, { passive: true });
+
     let ticking = false;
     function update() {
       const scrolled = window.scrollY;
-      const heroHeight = hero.offsetHeight;
       // Only animate while hero region is roughly in view
       if (scrolled < heroHeight + 200) {
         hero.style.setProperty('--parallax-y', (scrolled * 0.35) + 'px');
@@ -1804,7 +1818,8 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     hamburger?.classList.remove('is-open');
     mobileMenu?.classList.remove('is-open');
     hamburger?.setAttribute('aria-expanded', 'false');
-    mobileMenu?.setAttribute('aria-hidden', 'true');
+    // inert = non-focusable + invisible to AT. Replaces aria-hidden cleanly.
+    if (mobileMenu) mobileMenu.inert = true;
   }
 
   // ===========================================================
@@ -1858,7 +1873,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     hamburger?.classList.add('is-open');
     mobileMenu?.classList.add('is-open');
     hamburger?.setAttribute('aria-expanded', 'true');
-    mobileMenu?.setAttribute('aria-hidden', 'false');
+    if (mobileMenu) mobileMenu.inert = false;
   }
 
   hamburger?.addEventListener('click', () => {
@@ -1900,8 +1915,20 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     if (reducedMotion) return;
     const fired = new Set();
     const milestones = [25, 50, 75, 100];
+
+    // Cache docHeight — avoid querying scrollHeight on every scroll frame.
+    // Recalc only on resize/orientation change.
+    let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    let resizeFrame = null;
+    window.addEventListener('resize', () => {
+      if (resizeFrame) return;
+      resizeFrame = requestAnimationFrame(() => {
+        docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        resizeFrame = null;
+      });
+    }, { passive: true });
+
     function check() {
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (docHeight <= 0) return;
       const pct = Math.min(100, Math.round((window.scrollY / docHeight) * 100));
       milestones.forEach(m => {
