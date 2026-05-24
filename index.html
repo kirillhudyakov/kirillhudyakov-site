@@ -1699,22 +1699,29 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     const hero = document.querySelector('section.hero');
     if (!hero) return;
 
-    // Cache hero height — avoids forced reflow on every scroll frame.
-    // Update cache only on resize (debounced via rAF).
-    let heroHeight = hero.offsetHeight;
+    // Defer the initial offsetHeight read to idle time — avoids the 100+ms
+    // forced reflow that would otherwise block first paint while 3rd-party
+    // analytics is busy invalidating layout (FB Pixel, GTM, Yandex iframes).
+    let heroHeight = 0;
+    let initialized = false;
+    function measure() {
+      heroHeight = hero.offsetHeight;
+      initialized = true;
+    }
+
     let resizeFrame = null;
     window.addEventListener('resize', () => {
       if (resizeFrame) return;
       resizeFrame = requestAnimationFrame(() => {
-        heroHeight = hero.offsetHeight;
+        measure();
         resizeFrame = null;
       });
     }, { passive: true });
 
     let ticking = false;
     function update() {
+      if (!initialized) return;
       const scrolled = window.scrollY;
-      // Only animate while hero region is roughly in view
       if (scrolled < heroHeight + 200) {
         hero.style.setProperty('--parallax-y', (scrolled * 0.35) + 'px');
         hero.style.setProperty('--parallax-y-slow', (scrolled * -0.2) + 'px');
@@ -1729,7 +1736,12 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
       }
     }, { passive: true });
 
-    update(); // initial call
+    // Measure when the browser is idle — never blocks paint
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(measure, { timeout: 2000 });
+    } else {
+      setTimeout(measure, 500);
+    }
   }
 
   initParallax();
@@ -1916,20 +1928,25 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     const fired = new Set();
     const milestones = [25, 50, 75, 100];
 
-    // Cache docHeight — avoid querying scrollHeight on every scroll frame.
-    // Recalc only on resize/orientation change.
-    let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    // Defer initial scrollHeight read to idle — same reason as parallax above.
+    let docHeight = 0;
+    let initialized = false;
+    function measure() {
+      docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      initialized = true;
+    }
+
     let resizeFrame = null;
     window.addEventListener('resize', () => {
       if (resizeFrame) return;
       resizeFrame = requestAnimationFrame(() => {
-        docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        measure();
         resizeFrame = null;
       });
     }, { passive: true });
 
     function check() {
-      if (docHeight <= 0) return;
+      if (!initialized || docHeight <= 0) return;
       const pct = Math.min(100, Math.round((window.scrollY / docHeight) * 100));
       milestones.forEach(m => {
         if (pct >= m && !fired.has(m)) {
@@ -1945,6 +1962,13 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
         ticking = true;
       }
     }, { passive: true });
+
+    // Idle measurement — never blocks paint
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(measure, { timeout: 2000 });
+    } else {
+      setTimeout(measure, 500);
+    }
   })();
 </script>
 
