@@ -1793,35 +1793,7 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     }
   });
 
-  // ===========================================================
-  // Manual anchor-link scroll — fixes iOS Safari first-click miss
-  // where CSS scroll-padding-top doesn't apply on first interaction.
-  // Calculates nav height dynamically and scrolls with exact offset.
-  // ===========================================================
-  document.querySelectorAll('a[href^="#"]').forEach(link => {
-    link.addEventListener('click', (e) => {
-      const targetId = link.getAttribute('href');
-      if (!targetId || targetId === '#') return;
-      const target = document.querySelector(targetId);
-      if (!target) return;
 
-      e.preventDefault();
-      const nav = document.querySelector('nav.top');
-      const navHeight = nav ? nav.offsetHeight : 64;
-      const extraOffset = 20; // breathing room below nav
-      const targetTop = target.getBoundingClientRect().top + window.pageYOffset - navHeight - extraOffset;
-
-      window.scrollTo({
-        top: Math.max(0, targetTop),
-        behavior: 'smooth'
-      });
-
-      // Update URL hash without re-triggering browser jump
-      if (history.replaceState) {
-        history.replaceState(null, '', targetId);
-      }
-    });
-  });
   // ===========================================================
   // Hamburger menu toggle for mobile
   // ===========================================================
@@ -1834,6 +1806,53 @@ src="https://www.facebook.com/tr?id=1435897801640432&ev=PageView&noscript=1"/></
     hamburger?.setAttribute('aria-expanded', 'false');
     mobileMenu?.setAttribute('aria-hidden', 'true');
   }
+
+  // ===========================================================
+  // Manual anchor-link scroll — fixes iOS Safari first-click miss
+  // where CSS scroll-padding-top doesn't apply on first interaction.
+  // Uses .inner (top bar only) so open mobile menu doesn't inflate
+  // the offset and create a blank strip under the sticky nav.
+  // ===========================================================
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      const targetId = link.getAttribute('href');
+      if (!targetId || targetId === '#') return;
+      const target = document.querySelector(targetId);
+      if (!target) return;
+
+      e.preventDefault();
+
+      // Close mobile menu FIRST so layout collapses before we measure
+      const menuWasOpen = mobileMenu?.classList.contains('is-open');
+      if (menuWasOpen) closeMobileMenu();
+
+      const doScroll = () => {
+        // Only the sticky top-bar height — NOT the whole <nav> (which contains the dropdown)
+        const navInner = document.querySelector('nav.top .inner');
+        const navHeight = navInner ? navInner.offsetHeight : 64;
+        const extraOffset = 20; // breathing room below nav
+        const targetTop = target.getBoundingClientRect().top + window.pageYOffset - navHeight - extraOffset;
+
+        window.scrollTo({
+          top: Math.max(0, targetTop),
+          behavior: 'smooth'
+        });
+      };
+
+      // If menu was open, wait for the 0.3s max-height transition to finish
+      // so getBoundingClientRect returns the post-collapse target position.
+      if (menuWasOpen) {
+        setTimeout(doScroll, 320);
+      } else {
+        doScroll();
+      }
+
+      // Update URL hash without re-triggering browser jump
+      if (history.replaceState) {
+        history.replaceState(null, '', targetId);
+      }
+    });
+  });
 
   function openMobileMenu() {
     hamburger?.classList.add('is-open');
